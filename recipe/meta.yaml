@@ -16,7 +16,7 @@ source:
     - aad9de409bc2e0a8a50fed1169df0a06a252f399.patch
 
 build:
-  number: 201
+  number: 202
   skip: true  # [win]
   features:
     - blas_{{ variant }}
@@ -25,11 +25,11 @@ requirements:
   build:
     - cmake
     - blas 1.1 {{ variant }}
-    - openblas 0.2.18*
+    - openblas 0.2.18|0.2.18.*
 
   run:
     - blas 1.1 {{ variant }}
-    - openblas 0.2.18*
+    - openblas 0.2.18|0.2.18.*
 
 test:
   commands:
