@@ -1,0 +1,45 @@
+From 195ee190b2f74c9c2387afe50574004b98b864af Mon Sep 17 00:00:00 2001
+From: SYLVAND Guillaume <guillaume.sylvand@airbus.com>
+Date: Fri, 5 Aug 2016 11:14:49 +0200
+Subject: [PATCH] CMakeLists.txt: add gcc/g++ error flags *after* testing libraries
+
+(to prevent some tests failure, like detection of sqrt in libm)
+---
+ CMakeLists.txt | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 4de5833..13d3918 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -105,13 +105,6 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    set(HMAT_32BITS TRUE)
+ endif()
+ 
+-# Warning flags
+-
+-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+-  SET(CMAKE_CXX_FLAGS "-Werror -Wall -Wno-unused-result -Wno-sign-compare -Wno-literal-suffix ${CMAKE_CXX_FLAGS}")
+-  SET(CMAKE_C_FLAGS "-Werror -Wall -Wno-sign-compare ${CMAKE_C_FLAGS}")
+-endif()
+-
+ # ========================
+ # SYSTEM & EXTERNAL LIBS
+ # ========================
+@@ -225,6 +218,16 @@ if ((NOT MKL_CBLAS_FOUND) AND (NOT is_debian_openblas))
+ endif ()
+ 
+ # ========================
++# Warning flags
++# ========================
++include(CheckCXXCompilerFlag)
++check_cxx_compiler_flag("-Werror -Wall -Wno-unused-result -Wno-sign-compare -Wno-literal-suffix" HAVE_GCC_WARNING_FLAGS)
++if(HAVE_GCC_WARNING_FLAGS)
++  SET(CMAKE_CXX_FLAGS "-Werror -Wall -Wno-unused-result -Wno-sign-compare -Wno-literal-suffix ${CMAKE_CXX_FLAGS}")
++  SET(CMAKE_C_FLAGS "-Werror -Wall -Wno-sign-compare ${CMAKE_C_FLAGS}")
++endif()
++
++# ========================
+ # Configuration file
+ # ========================
+ configure_file("${PROJECT_SOURCE_DIR}/CMake/config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/config.h")

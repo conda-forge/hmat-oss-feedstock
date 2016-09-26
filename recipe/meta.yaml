@@ -1,4 +1,4 @@
-{% set version = "1.1.2" %}
+{% set version = "1.2.0" %}
 {% set variant = "openblas" %}
 
 package:
@@ -8,16 +8,13 @@ package:
 source:
   fn: hmat-oss-{{ version }}.tar.gz
   url: https://github.com/jeromerobert/hmat-oss/archive/{{ version }}.tar.gz
-  sha1: fe52fa22e413be862bec1b44a2b695a566525138
+  sha1: 67ec6f26d0c66ba7c495e5c21d1ec701f43f0770
 # commits from upstream:
   patches:
-    - 7d14b6451d3f63a949fee9c09d349aec6edd193e.patch
-    - 2bea755a2139907d331bfa0229154b6dab7a61c1.patch
-    - aad9de409bc2e0a8a50fed1169df0a06a252f399.patch
-    - 0054f6aac9b19cb2ce4672f21779488363188f56.patch
+    - 195ee190b2f74c9c2387afe50574004b98b864af.patch
 
 build:
-  number: 202
+  number: 203
   skip: true  # [win]
   features:
     - blas_{{ variant }}
