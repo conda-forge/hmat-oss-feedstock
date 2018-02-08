@@ -11,7 +11,7 @@ source:
   sha256: 21a64d1df1c9bb7221205020b95af8bff65668d0d2cfde5431d0e9fc7958d0a9
 
 build:
-  number: 203
+  number: 204
   skip: true  # [win]
   features:
     - blas_{{ variant }}
@@ -22,12 +22,10 @@ requirements:
     - cmake
     - blas 1.1 {{ variant }}
     - openblas 0.2.20|0.2.20.*
-    - gcc  # [linux]
 
   run:
     - blas 1.1 {{ variant }}
     - openblas 0.2.20|0.2.20.*
-    - libgcc  # [linux]
 
 test:
   commands:
