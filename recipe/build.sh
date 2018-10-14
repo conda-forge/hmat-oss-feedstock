@@ -14,5 +14,5 @@ cmake \
   -DHMAT_DISABLE_OPENMP=OFF \
   ..
 
-make install -j${CPU_COUNT}
+make install -j${CPU_COUNT} VERBOSE=1
 ./c-simple-cylinder 1000 D
