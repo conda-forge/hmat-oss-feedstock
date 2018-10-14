@@ -2,6 +2,8 @@
 
 mkdir build && cd build
 
+ls -l ${PREFIX}/lib/libopenblas${SHLIB_EXT}* || find ${PREFIX} -name libopenblas${SHLIB_EXT}
+
 cmake \
   -DCMAKE_PREFIX_PATH=${PREFIX} \
   -DCMAKE_INSTALL_PREFIX=${PREFIX} \
