@@ -11,6 +11,7 @@ source:
   sha256: 21a64d1df1c9bb7221205020b95af8bff65668d0d2cfde5431d0e9fc7958d0a9
   patches:
     - disable-werror.patch
+    - link_public.patch
 
 build:
   number: 205
