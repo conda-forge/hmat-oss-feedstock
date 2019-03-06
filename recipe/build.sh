@@ -12,7 +12,7 @@ cmake \
   -DCMAKE_CXX_FLAGS="-std=c++11" \
   -DHMAT_GIT_VERSION=OFF \
   -DHMAT_DISABLE_OPENMP=OFF \
-  ..
+  .. || cat CMakeFiles/CMake*.log
 
 make install -j${CPU_COUNT}
 ./c-simple-cylinder 1000 D
