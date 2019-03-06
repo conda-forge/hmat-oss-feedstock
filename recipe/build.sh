@@ -12,6 +12,7 @@ cmake \
   -DCMAKE_CXX_FLAGS="-std=c++11" \
   -DHMAT_GIT_VERSION=OFF \
   -DHMAT_DISABLE_OPENMP=OFF \
+  -DCBLAS_INCLUDE_DIRS=${PREFIX}/include \
   .. || cat CMakeFiles/CMake*.log
 
 make install -j${CPU_COUNT}
