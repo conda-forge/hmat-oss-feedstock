@@ -1,5 +1,4 @@
 {% set version = "1.5.0" %}
-{% set variant = "openblas" %}
 
 package:
   name: hmat-oss
@@ -14,10 +13,9 @@ source:
     - link_public.patch
 
 build:
-  number: 205
+  number: 206
   skip: true  # [win]
   features:
-    - blas_{{ variant }}
 
 requirements:
   build:
@@ -25,12 +23,10 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
   host:
-    - blas 1.1 {{ variant }}
-    - openblas
+    - libblas
+    - libcblas
 
   run:
-    - blas 1.1 {{ variant }}
-    - openblas
 
 test:
   commands:
