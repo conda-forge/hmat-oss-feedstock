@@ -6,7 +6,7 @@ index 5ad8e50..1135b63 100644
      endif ()
      add_executable(${HMAT_PREFIX_EXAMPLE}${name} ${PROJECT_SOURCE_DIR}/examples/${source})
      target_link_libraries(${HMAT_PREFIX_EXAMPLE}${name} ${PROJECT_NAME})
-+    target_link_libraries(${HMAT_PREFIX_EXAMPLE}${name} ${BLAS_LIBRARIES})
++    target_link_libraries(${HMAT_PREFIX_EXAMPLE}${name} ${LAPACK_LIBRARIES} ${CBLAS_LIBRARIES})
      if (INSTALL_EXAMPLES)
        install(TARGETS ${HMAT_PREFIX_EXAMPLE}${name} DESTINATION "${RELATIVE_INSTALL_BIN_DIR}/examples" COMPONENT Runtime)
      endif ()
