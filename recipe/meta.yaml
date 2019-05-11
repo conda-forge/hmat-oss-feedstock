@@ -30,9 +30,6 @@ test:
     - test -f ${PREFIX}/include/hmat/hmat/hmat.h  # [unix]
     - test -f ${PREFIX}/lib/libhmat-oss${SHLIB_EXT}  # [unix]
 
-    - conda inspect linkages -p ${PREFIX} hmat-oss  # [not win]
-    - conda inspect objects -p ${PREFIX} hmat-oss  # [osx]
-
 about:
   home: https://github.com/jeromerobert/hmat-oss
   license: GPLv2
