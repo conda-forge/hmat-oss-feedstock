@@ -13,7 +13,7 @@ source:
     - link_public.patch
 
 build:
-  number: 206
+  number: 207
   skip: true  # [win]
 
 requirements:
