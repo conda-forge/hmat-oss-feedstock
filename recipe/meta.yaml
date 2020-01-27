@@ -1,4 +1,4 @@
-{% set version = "1.5.0" %}
+{% set version = "1.6.0" %}
 
 package:
   name: hmat-oss
@@ -7,13 +7,13 @@ package:
 source:
   fn: hmat-oss-{{ version }}.tar.gz
   url: https://github.com/jeromerobert/hmat-oss/archive/{{ version }}.tar.gz
-  sha256: 21a64d1df1c9bb7221205020b95af8bff65668d0d2cfde5431d0e9fc7958d0a9
+  sha256: 441bffb2e578150d86b0f056a52a3838f56d0bef6c6257c1bf6f54b308f37125
   patches:
     - disable-werror.patch
     - link_public.patch
 
 build:
-  number: 208
+  number: 0
   skip: true  # [win]
   run_exports:
     - {{ pin_subpackage('hmat-oss', max_pin='x.x') }}
