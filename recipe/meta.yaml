@@ -27,7 +27,7 @@ requirements:
 test:
   commands:
     - test -f ${PREFIX}/include/hmat/hmat.h  # [unix]
-    - test -f ${PREFIX}/lib/libhmat-oss${SHLIB_EXT}  # [unix]
+    - test -f ${PREFIX}/lib/libhmat${SHLIB_EXT}  # [unix]
 
 about:
   home: https://github.com/jeromerobert/hmat-oss
