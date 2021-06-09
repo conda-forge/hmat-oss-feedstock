@@ -3,7 +3,7 @@ About hmat-oss
 
 Home: https://github.com/jeromerobert/hmat-oss
 
-Package license: GPLv2
+Package license: GPL-2.0-or-later
 
 Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/hmat-oss-feedstock/blob/master/LICENSE.txt)
 
