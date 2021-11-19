@@ -13,4 +13,7 @@ cmake ${CMAKE_ARGS} \
   ..
 
 make install -j${CPU_COUNT}
-./c-simple-cylinder 1000 D
+if test "${BUILD}" == "${HOST}"
+then
+  ./c-simple-cylinder 1000 D
+fi
