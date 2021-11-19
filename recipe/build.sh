@@ -2,7 +2,7 @@
 
 mkdir build && cd build
 
-cmake \
+cmake ${CMAKE_ARGS} \
   -DCMAKE_PREFIX_PATH=${PREFIX} \
   -DCMAKE_INSTALL_PREFIX=${PREFIX} \
   -DBUILD_EXAMPLES=ON \
@@ -13,4 +13,7 @@ cmake \
   ..
 
 make install -j${CPU_COUNT}
-./c-simple-cylinder 1000 D
+if test "${BUILD}" == "${HOST}"
+then
+  ./c-simple-cylinder 1000 D
+fi
