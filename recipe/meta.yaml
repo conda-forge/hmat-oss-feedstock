@@ -8,9 +8,11 @@ source:
   fn: hmat-oss-{{ version }}.tar.gz
   url: https://github.com/jeromerobert/hmat-oss/archive/{{ version }}.tar.gz
   sha256: 8ff641ec6b1ae290ee8d67ba5880fb636659c5f150e84daa826d93140500b3ed
+  patches:
+    - clang13.patch
 
 build:
-  number: 0
+  number: 1
   skip: true  # [win]
   run_exports:
     - {{ pin_subpackage('hmat-oss', max_pin='x.x') }}
@@ -18,6 +20,7 @@ build:
 requirements:
   build:
     - cmake
+    - make  # [unix]
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
   host:
