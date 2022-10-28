@@ -13,7 +13,7 @@ cmake ${CMAKE_ARGS} \
   ..
 
 make install -j${CPU_COUNT}
-if test "${BUILD}" == "${HOST}"
+if test "$CONDA_BUILD_CROSS_COMPILATION" != "1"
 then
   ./c-simple-cylinder 1000 D
 fi
