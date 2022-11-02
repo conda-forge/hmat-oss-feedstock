@@ -8,8 +8,6 @@ source:
   fn: hmat-oss-{{ version }}.tar.gz
   url: https://github.com/jeromerobert/hmat-oss/archive/{{ version }}.tar.gz
   sha256: f50fefc58b6fd4c0e8eb583033234f8138f06a3f99c7b84b7cbff9c6bd1f3070
-  patches:
-    - clang13.patch
 
 build:
   number: 0
@@ -24,7 +22,7 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
   host:
-    - liblapack
+    - liblapacke
     - libcblas
 
 test:
