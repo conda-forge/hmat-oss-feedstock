@@ -14,7 +14,7 @@ cxx_compiler_version:
 - '14'
 libcblas:
 - 3.9 *netlib
-liblapack:
+liblapacke:
 - 3.9 *netlib
 macos_machine:
 - x86_64-apple-darwin13.4.0
