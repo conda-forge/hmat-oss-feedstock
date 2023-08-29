@@ -2,7 +2,7 @@
 
 mkdir build && cd build
 
-cmake ${CMAKE_ARGS} \
+cmake -LAH -G "Ninja" ${CMAKE_ARGS} \
   -DCMAKE_PREFIX_PATH=${PREFIX} \
   -DCMAKE_INSTALL_PREFIX=${PREFIX} \
   -DBUILD_EXAMPLES=ON \
@@ -12,8 +12,8 @@ cmake ${CMAKE_ARGS} \
   -DCBLAS_INCLUDE_DIRS=${PREFIX}/include \
   ..
 
-make install -j${CPU_COUNT}
+cmake --build . --target install --parallel ${CPU_COUNT}
 if test "$CONDA_BUILD_CROSS_COMPILATION" != "1"
 then
-  ./c-simple-cylinder 1000 D
+  ctest --output-on-failure -j${CPU_COUNT}
 fi

@@ -1,0 +1,335 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 321c6d6..5e76644 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -281,7 +281,12 @@ function(hmat_set_compiler_flags _TARGET_NAME)
+     endif()
+     check_cxx_compiler_flag("/W4" MSVC_COMPILER_WARNING_FLAGS)
+     if(MSVC_COMPILER_WARNING_FLAGS)
+-        target_compile_options(${_TARGET_NAME} PRIVATE /W4 -wd869,1786,2557,3280)
++        target_compile_options(${_TARGET_NAME} PRIVATE /W4)
++    endif()
++
++    check_cxx_compiler_flag("-wd869,1786,2557,3280" HAVE_INTEL_COMPILER_WARNING_FLAGS)
++    if(HAVE_INTEL_COMPILER_WARNING_FLAGS)
++        target_compile_options(${_TARGET_NAME} PRIVATE "-wd869,1786,2557,3280")
+     endif()
+ 
+     # C99 required for complex numbers
+diff --git a/examples/c-cylinder.c b/examples/c-cylinder.c
+index bf876a4..95e2bd6 100644
+--- a/examples/c-cylinder.c
++++ b/examples/c-cylinder.c
+@@ -30,10 +30,15 @@ typedef std::complex<double> double_complex;
+     std::complex<double>(realPart, imagPart)
+ #else
+ #include <complex.h>
++#ifdef _MSC_VER
++typedef _Dcomplex double_complex;
++#define make_complex(realPart, imagPart) _Cbuild(realPart, imagPart)
++#else
+ typedef double complex double_complex;
+ #define make_complex(realPart, imagPart) \
+     realPart + imagPart * _Complex_I
+ #endif
++#endif
+ 
+ #include "hmat/hmat.h"
+ #include "examples.h"
+diff --git a/examples/c-simple-cylinder.c b/examples/c-simple-cylinder.c
+index 952f74a..190892c 100644
+--- a/examples/c-simple-cylinder.c
++++ b/examples/c-simple-cylinder.c
+@@ -30,10 +30,15 @@ typedef std::complex<double> double_complex;
+     std::complex<double>(realPart, imagPart)
+ #else
+ #include <complex.h>
++#ifdef _MSC_VER
++typedef _Dcomplex double_complex;
++#define make_complex(realPart, imagPart) _Cbuild(realPart, imagPart)
++#else
+ typedef double complex double_complex;
+ #define make_complex(realPart, imagPart) \
+     realPart + imagPart * _Complex_I
+ #endif
++#endif
+ 
+ #include "hmat/hmat.h"
+ #include "examples.h"
+diff --git a/examples/c-simple-kriging.c b/examples/c-simple-kriging.c
+index b13957c..1d818f6 100644
+--- a/examples/c-simple-kriging.c
++++ b/examples/c-simple-kriging.c
+@@ -32,8 +32,13 @@
+ typedef std::complex<double> double_complex;
+ #else
+ #include <complex.h>
++#ifdef _MSC_VER
++typedef _Dcomplex double_complex;
++#define make_complex(realPart, imagPart) _Cbuild(realPart, imagPart)
++#else
+ typedef double complex double_complex;
+ #endif
++#endif
+ #include "hmat/hmat.h"
+ #include "examples.h"
+ 
+diff --git a/src/admissibility.hpp b/src/admissibility.hpp
+index 8bb43c7..8d7b0fc 100644
+--- a/src/admissibility.hpp
++++ b/src/admissibility.hpp
+@@ -46,9 +46,9 @@ public:
+   virtual ~AdmissibilityCondition() {}
+ 
+   /*! \brief Precompute ClusterTree::cache_ */
+-  virtual void prepare(const ClusterTree& rows, const ClusterTree& cols) const {}
++  virtual void prepare(const ClusterTree& /*rows*/, const ClusterTree& /*cols*/) const {}
+   /*! \brief Clean up data which may be allocated by prepare  */
+-  virtual void clean(const ClusterTree& rows, const ClusterTree& cols) const {}
++  virtual void clean(const ClusterTree& /*rows*/, const ClusterTree& /*cols*/) const {}
+ 
+   /*! \brief Returns true if the block of interaction between 2 nodes has a
+       low-rank representation.
+diff --git a/src/clustering.cpp b/src/clustering.cpp
+index 2a2d66c..48a1561 100644
+--- a/src/clustering.cpp
++++ b/src/clustering.cpp
+@@ -106,18 +106,21 @@ AxisAlignClusteringAlgorithm::largestDimension(const ClusterTree& node, int toAv
+ const
+ {
+   AxisAlignedBoundingBox* bbox = getAxisAlignedBoundingbox(node);
+-  int dimension = node.data.coordinates()->dimension();
+-  std::pair<double, int> sizeDim[dimension];
++  const int dimension = node.data.coordinates()->dimension();
++  std::pair<double, int> *sizeDim = new std::pair<double, int>[dimension];
+   for (int i = 0; i < dimension; i++) {
+     sizeDim[i].second = i;
+     sizeDim[i].first = bbox->bbMax()[i] - bbox->bbMin()[i];
+   }
+   std::sort(sizeDim, sizeDim + dimension);
++  int largest = 0;
+   if(toAvoid < 0 || dimension < 2 || sizeDim[dimension - 1].second != toAvoid ||
+      sizeDim[dimension - 1].first > avoidRatio * sizeDim[dimension - 2].first)
+-    return sizeDim[dimension - 1].second;
++    largest = sizeDim[dimension - 1].second;
+   else
+-    return sizeDim[dimension - 2].second;
++    largest = sizeDim[dimension - 2].second;
++  delete [] sizeDim;
++  return largest;
+ }
+ 
+ double
+diff --git a/src/common/timeline.hpp b/src/common/timeline.hpp
+index 6e03da7..469d2e3 100644
+--- a/src/common/timeline.hpp
++++ b/src/common/timeline.hpp
+@@ -92,7 +92,9 @@ class Timeline {
+             HMatrix<T> * block2 = NULL, HMatrix<T> * block3 = NULL){}
+         template<typename T> Task(Operation op, ScalarArray<T> * block1,
+             HMatrix<T> * block2 = NULL, ScalarArray<T> * block3 = NULL){}
+-        Task(Operation op, const int *a=NULL, const int *b=NULL, const int *c=NULL, const int *d=NULL, const int *e=NULL) {}
++        Task(Operation op, const int *a=NULL, const int *b=NULL, const int *c=NULL, const int *d=NULL, const int *e=NULL) {
++            (void)op, (void)a, (void)b, (void)c, (void)d, (void)e; // unused
++        }
+ #endif
+     };
+ 
+@@ -107,7 +109,9 @@ class Timeline {
+      */
+     void init(int numberOfWorker=1, int rank=0, bool onlyWorker = false);
+ #else
+-    void init(int numberOfWorker=1, int rank=0, bool onlyWorker = false){}
++    void init(int numberOfWorker=1, int rank=0, bool onlyWorker = false){
++        (void)numberOfWorker, (void)rank, (void)onlyWorker; // unused
++    }
+ #endif
+     /** Track pack and unpack */
+     void setPackEnabled(bool);
+diff --git a/src/compression.cpp b/src/compression.cpp
+index fc4e55d..e3b5ff5 100644
+--- a/src/compression.cpp
++++ b/src/compression.cpp
+@@ -165,7 +165,7 @@ static int findMinRow(const ClusterAssemblyFunction<T>& block,
+ 
+   int rowCount = aRef.rows;
+   double minNorm2;
+-  int i_ref;
++  int i_ref = -1;
+   bool found = false;
+ 
+   while (!found) {
+@@ -201,7 +201,7 @@ static int findMinCol(const ClusterAssemblyFunction<T>& block,
+                       Vector<typename Types<T>::dp>& col) {
+   int colCount = bRef.rows;
+   double minNorm2;
+-  int j_ref;
++  int j_ref = -1;
+   bool found = false;
+ 
+   while (!found) {
+diff --git a/src/full_matrix.hpp b/src/full_matrix.hpp
+index 0aed238..40ecef9 100644
+--- a/src/full_matrix.hpp
++++ b/src/full_matrix.hpp
+@@ -46,9 +46,9 @@ public:
+   ScalarArray<T> data;
+ private:
+   /*! Is this matrix upper triangular? */
+-  char triUpper_:1;
++  unsigned char triUpper_:1;
+   /*! Is this matrix lower triangular? */
+-  char triLower_:1;
++  unsigned char triLower_:1;
+   /// Disallow the copy
+   FullMatrix(const FullMatrix<T>& o);
+ 
+diff --git a/src/h_matrix.cpp b/src/h_matrix.cpp
+index 33ad87e..a8ab8bd 100644
+--- a/src/h_matrix.cpp
++++ b/src/h_matrix.cpp
+@@ -638,7 +638,7 @@ bool HMatrix<T>::coarsen(double epsilon, HMatrix<T>* upper, bool force) {
+   // leaves. Note that this operation could be used hierarchically.
+ 
+   bool allRkLeaves = true;
+-  const RkMatrix<T>* childrenArray[this->nrChild()];
++  std::vector< RkMatrix<T> const* > childrenArray(this->nrChild());
+   size_t childrenElements = 0;
+   for (int i = 0; i < this->nrChild(); i++) {
+     childrenArray[i] = nullptr;
+@@ -657,7 +657,7 @@ bool HMatrix<T>::coarsen(double epsilon, HMatrix<T>* upper, bool force) {
+   if (allRkLeaves) {
+     std::vector<T> alpha(this->nrChild(), 1);
+     RkMatrix<T> * candidate = new RkMatrix<T>(NULL, rows(), NULL, cols());
+-    candidate->formattedAddParts(epsilon, &alpha[0], childrenArray, this->nrChild());
++    candidate->formattedAddParts(epsilon, &alpha[0], childrenArray.data(), this->nrChild());
+     size_t elements = (((size_t) candidate->rows->size()) + candidate->cols->size()) * candidate->rank();
+     if (force || elements < childrenElements) {
+       // Replace 'this' by the new Rk matrix
+diff --git a/src/h_matrix.hpp b/src/h_matrix.hpp
+index 3c58a89..582fab7 100644
+--- a/src/h_matrix.hpp
++++ b/src/h_matrix.hpp
+@@ -635,7 +635,7 @@ public:
+   static bool validationDump;
+   /// Error threshold for the compression validation
+   static double validationErrorThreshold;
+-  short isUpper:1, isLower:1,       /// symmetric, upper or lower stored
++  unsigned short isUpper:1, isLower:1,       /// symmetric, upper or lower stored
+        isTriUpper:1, isTriLower:1, /// upper/lower triangular
+        keepSameRows:1, keepSameCols:1,
+        temporary_:1, ownRowsClusterTree_:1, ownColsClusterTree_:1;
+diff --git a/src/rk_matrix.cpp b/src/rk_matrix.cpp
+index a07504a..ec40312 100644
+--- a/src/rk_matrix.cpp
++++ b/src/rk_matrix.cpp
+@@ -604,8 +604,8 @@ void RkMatrix<T>::formattedAddParts(double epsilon, const T* alpha, const RkMatr
+   DECLARE_CONTEXT;
+ 
+   /* List of non-null and non-empty Rk matrices to coalesce, and the corresponding scaling coefficients */
+-  const RkMatrix<T>* usedParts[n+1];
+-  T usedAlpha[n+1];
++  std::vector< RkMatrix<T> const * > usedParts(n + 1);
++  std::vector<T> usedAlpha(n+1);
+   /* Number of elements in usedParts[] */
+   int notNullParts = 0;
+   /* Sum of the ranks */
+@@ -643,7 +643,7 @@ void RkMatrix<T>::formattedAddParts(double epsilon, const T* alpha, const RkMatr
+     fullParts[0] = NULL ;
+     for (int i = rank() ? 1 : 0 ; i < notNullParts; i++) // exclude usedParts[0] if it is 'this'
+       fullParts[i] = usedParts[i]->eval();
+-    formattedAddParts(std::abs(epsilon), usedAlpha, fullParts, notNullParts);
++    formattedAddParts(std::abs(epsilon), usedAlpha.data(), fullParts, notNullParts);
+     for (int i = 0; i < notNullParts; i++)
+       delete fullParts[i];
+     delete[] fullParts;
+@@ -657,7 +657,7 @@ void RkMatrix<T>::formattedAddParts(double epsilon, const T* alpha, const RkMatr
+   // Try to optimize the order of the Rk matrix to maximize initialPivot
+   static char *useBestRk = getenv("HMAT_MGS_BESTRK");
+   if (useBestRk)
+-    optimizeRkArray(notNullParts, usedParts, usedAlpha, initialPivotA, initialPivotB);
++    optimizeRkArray(notNullParts, usedParts.data(), usedAlpha.data(), initialPivotA, initialPivotB);
+ 
+   // According to the indices organization, the sub-matrices are
+   // contiguous blocks in the "big" matrix whose columns offset is
+@@ -669,7 +669,7 @@ void RkMatrix<T>::formattedAddParts(double epsilon, const T* alpha, const RkMatr
+   // Same for columns.
+ 
+   // when possible realloc this a & b arrays to limit memory usage and avoid a copy
+-  bool useRealloc = usedParts[0] == this && allSame(usedParts, notNullParts);
++  bool useRealloc = usedParts[0] == this && allSame(usedParts.data(), notNullParts);
+   // concatenate a(i) then b(i) to limite memory usage
+   ScalarArray<T>* resultA, *resultB;
+   int rankOffset;
+@@ -1113,8 +1113,7 @@ template<typename T> void RkMatrix<T>::gemmRk(double epsilon, char transHA, char
+     int nbCols = transHB == 'N' ? hb->nrChildCol() : hb->nrChildRow() ; /* Col blocks of the product */
+     int nbCom  = transHA == 'N' ? ha->nrChildCol() : ha->nrChildRow() ; /* Common dimension between A and B */
+     int nSubRks = nbRows * nbCols;
+-    RkMatrix<T>* subRks[nSubRks];
+-    std::fill_n(subRks, nSubRks, nullptr);
++    std::vector<RkMatrix<T>*> subRks(nSubRks, nullptr);
+     for (int i = 0; i < nbRows; i++) {
+       for (int j = 0; j < nbCols; j++) {
+         int p = i + j * nbRows;
+@@ -1137,9 +1136,8 @@ template<typename T> void RkMatrix<T>::gemmRk(double epsilon, char transHA, char
+     // This test is not needed, it is there only to workaround bogus warning from GCC 12:
+     //   error: ‘<unknown>’ may be used uninitialized [-Werror=maybe-uninitialized]
+     if (nSubRks > 0) {
+-      T alphaV[nSubRks];
+-      std::fill_n(alphaV, nSubRks, 1);
+-      formattedAddParts(epsilon, alphaV, subRks, nSubRks);
++      std::vector<T> alphaV(nSubRks, 1);
++      formattedAddParts(epsilon, alphaV.data(), subRks.data(), nSubRks);
+     }
+     for (int i = 0; i < nSubRks; i++) {
+       delete subRks[i];
+diff --git a/src/scalar_array.cpp b/src/scalar_array.cpp
+index ecb841a..1c9fb60 100644
+--- a/src/scalar_array.cpp
++++ b/src/scalar_array.cpp
+@@ -1142,11 +1142,11 @@ int ScalarArray<T>::productQ(char side, char trans, ScalarArray<T>* c) const {
+   // In qrDecomposition(), tau is stored in the last column of 'this'
+   // it is not valid to work with 'tau' inside the array 'a' because zunmqr modifies 'a'
+   // during computation. So we work on a copy of tau.
+-  T tau[std::min(rows, cols)];
+-  memcpy(tau, const_ptr(0, cols-1), sizeof(T)*std::min(rows, cols));
++  std::vector<T> tau(std::min(rows, cols));
++  memcpy(tau.data(), const_ptr(0, cols-1), sizeof(T)*std::min(rows, cols));
+ 
+   // We don't use c->ptr() on purpose, because c->is_ortho is preserved here (Q is orthogonal)
+-  int info = proxy_lapack_convenience::or_un_mqr(side, trans, c->rows, c->cols, cols, const_ptr(), lda, tau, c->m, c->lda);
++  int info = proxy_lapack_convenience::or_un_mqr(side, trans, c->rows, c->cols, cols, const_ptr(), lda, tau.data(), c->m, c->lda);
+   HMAT_ASSERT(!info);
+   return 0;
+ }
+diff --git a/src/scalar_array.hpp b/src/scalar_array.hpp
+index 329db6f..aa4fc96 100644
+--- a/src/scalar_array.hpp
++++ b/src/scalar_array.hpp
+@@ -89,7 +89,7 @@ template<typename T> class ScalarArray {
+ 
+ private:
+   /*! True if the matrix owns its memory, ie has to free it upon destruction */
+-  char ownsMemory:1;
++  unsigned char ownsMemory:1;
+ protected:
+   /// Fortran style pointer (columnwise)
+   T* m;
+@@ -98,7 +98,7 @@ protected:
+   int *is_ortho;
+ #endif
+   /*! True if we own 'is_ortho' (there are cases where we own the flag and not the memory, with the constructor taking a 'T*' as input) */
+-  char ownsFlag:1;
++  unsigned char ownsFlag:1;
+ public:
+   /// Number of rows
+   int rows;
+@@ -534,6 +534,8 @@ public:
+     *is_ortho = flag;
+     static char *test = getenv("HMAT_TEST_ORTHO");
+     if (flag && test) assert(getOrtho() == testOrtho());
++#else
++    (void)flag; // unused
+ #endif
+   }
+ 
