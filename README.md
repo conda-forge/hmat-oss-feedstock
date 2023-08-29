@@ -1,11 +1,11 @@
-About hmat-oss
-==============
+About hmat-oss-feedstock
+========================
+
+Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/hmat-oss-feedstock/blob/main/LICENSE.txt)
 
 Home: https://github.com/jeromerobert/hmat-oss
 
 Package license: GPL-2.0-or-later
-
-Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/hmat-oss-feedstock/blob/main/LICENSE.txt)
 
 Summary: A hierarchical matrix C/C++ library
 
@@ -45,6 +45,13 @@ Current build status
               <td>
                 <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=420&branchName=main">
                   <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/hmat-oss-feedstock?branchName=main&jobName=osx&configuration=osx%20osx_arm64_" alt="variant">
+                </a>
+              </td>
+            </tr><tr>
+              <td>win_64</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=420&branchName=main">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/hmat-oss-feedstock?branchName=main&jobName=win&configuration=win%20win_64_" alt="variant">
                 </a>
               </td>
             </tr>
