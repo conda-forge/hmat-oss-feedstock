@@ -1,21 +1,26 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 321c6d6..5e76644 100644
+index 321c6d6..1888708 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -281,7 +281,12 @@ function(hmat_set_compiler_flags _TARGET_NAME)
+@@ -279,11 +279,16 @@ function(hmat_set_compiler_flags _TARGET_NAME)
+             endif()
+         endforeach()
      endif()
-     check_cxx_compiler_flag("/W4" MSVC_COMPILER_WARNING_FLAGS)
-     if(MSVC_COMPILER_WARNING_FLAGS)
--        target_compile_options(${_TARGET_NAME} PRIVATE /W4 -wd869,1786,2557,3280)
-+        target_compile_options(${_TARGET_NAME} PRIVATE /W4)
-+    endif()
-+
-+    check_cxx_compiler_flag("-wd869,1786,2557,3280" HAVE_INTEL_COMPILER_WARNING_FLAGS)
-+    if(HAVE_INTEL_COMPILER_WARNING_FLAGS)
-+        target_compile_options(${_TARGET_NAME} PRIVATE "-wd869,1786,2557,3280")
+-    check_cxx_compiler_flag("/W4" MSVC_COMPILER_WARNING_FLAGS)
+-    if(MSVC_COMPILER_WARNING_FLAGS)
++    check_cxx_compiler_flag("/W4 -wd869,1786,2557,3280" HAVE_INTEL_WIN32_COMPILER_WARNING_FLAGS)
++    if(HAVE_INTEL_WIN32_COMPILER_WARNING_FLAGS)
+         target_compile_options(${_TARGET_NAME} PRIVATE /W4 -wd869,1786,2557,3280)
      endif()
  
++    check_cxx_compiler_flag("/wd4244 /wd4267 /wd4996" HAVE_MSVC_COMPILER_WARNING_FLAGS)
++    if(HAVE_MSVC_COMPILER_WARNING_FLAGS)
++        target_compile_options(${_TARGET_NAME} PRIVATE /wd4244 /wd4267 /wd4996)
++    endif()
++
      # C99 required for complex numbers
+     target_compile_features(${_TARGET_NAME} PRIVATE cxx_std_11;c_std_99)
+ 
 diff --git a/examples/c-cylinder.c b/examples/c-cylinder.c
 index bf876a4..95e2bd6 100644
 --- a/examples/c-cylinder.c
@@ -57,7 +62,7 @@ index 952f74a..190892c 100644
  #include "hmat/hmat.h"
  #include "examples.h"
 diff --git a/examples/c-simple-kriging.c b/examples/c-simple-kriging.c
-index b13957c..1d818f6 100644
+index b13957c..c69c469 100644
 --- a/examples/c-simple-kriging.c
 +++ b/examples/c-simple-kriging.c
 @@ -32,8 +32,13 @@
@@ -74,6 +79,15 @@ index b13957c..1d818f6 100644
  #include "hmat/hmat.h"
  #include "examples.h"
  
+@@ -42,7 +47,7 @@ typedef double complex double_complex;
+ typedef SSIZE_T ssize_t;
+ #endif
+ 
+-#if _WIN32
++#ifdef _WIN32
+ // getline is not defined in mingw
+ #include <stdlib.h>
+ size_t getline(char **lineptr, size_t *n, FILE *stream) {
 diff --git a/src/admissibility.hpp b/src/admissibility.hpp
 index 8bb43c7..8d7b0fc 100644
 --- a/src/admissibility.hpp
@@ -91,35 +105,39 @@ index 8bb43c7..8d7b0fc 100644
    /*! \brief Returns true if the block of interaction between 2 nodes has a
        low-rank representation.
 diff --git a/src/clustering.cpp b/src/clustering.cpp
-index 2a2d66c..48a1561 100644
+index 2a2d66c..24df548 100644
 --- a/src/clustering.cpp
 +++ b/src/clustering.cpp
-@@ -106,18 +106,21 @@ AxisAlignClusteringAlgorithm::largestDimension(const ClusterTree& node, int toAv
+@@ -106,13 +106,13 @@ AxisAlignClusteringAlgorithm::largestDimension(const ClusterTree& node, int toAv
  const
  {
    AxisAlignedBoundingBox* bbox = getAxisAlignedBoundingbox(node);
 -  int dimension = node.data.coordinates()->dimension();
 -  std::pair<double, int> sizeDim[dimension];
 +  const int dimension = node.data.coordinates()->dimension();
-+  std::pair<double, int> *sizeDim = new std::pair<double, int>[dimension];
++  std::vector< std::pair<double, int> > sizeDim(dimension);
    for (int i = 0; i < dimension; i++) {
      sizeDim[i].second = i;
      sizeDim[i].first = bbox->bbMax()[i] - bbox->bbMin()[i];
    }
-   std::sort(sizeDim, sizeDim + dimension);
-+  int largest = 0;
+-  std::sort(sizeDim, sizeDim + dimension);
++  std::sort(sizeDim.data(), sizeDim.data() + dimension);
    if(toAvoid < 0 || dimension < 2 || sizeDim[dimension - 1].second != toAvoid ||
       sizeDim[dimension - 1].first > avoidRatio * sizeDim[dimension - 2].first)
--    return sizeDim[dimension - 1].second;
-+    largest = sizeDim[dimension - 1].second;
-   else
--    return sizeDim[dimension - 2].second;
-+    largest = sizeDim[dimension - 2].second;
-+  delete [] sizeDim;
-+  return largest;
+     return sizeDim[dimension - 1].second;
+diff --git a/src/common/my_assert.h b/src/common/my_assert.h
+index a21c34f..7259a45 100644
+--- a/src/common/my_assert.h
++++ b/src/common/my_assert.h
+@@ -69,7 +69,7 @@ HMAT_NORETURN inline static void hmat_assert(const char * format, ...) {
+     abort();
  }
  
- double
+-#if defined(__cplusplus) && __cplusplus >= 201103L
++#if defined(__cplusplus)
+ 
+ #include <stdexcept>
+ #include <string>
 diff --git a/src/common/timeline.hpp b/src/common/timeline.hpp
 index 6e03da7..469d2e3 100644
 --- a/src/common/timeline.hpp
@@ -284,7 +302,7 @@ index a07504a..ec40312 100644
      for (int i = 0; i < nSubRks; i++) {
        delete subRks[i];
 diff --git a/src/scalar_array.cpp b/src/scalar_array.cpp
-index ecb841a..1c9fb60 100644
+index ecb841a..d430832 100644
 --- a/src/scalar_array.cpp
 +++ b/src/scalar_array.cpp
 @@ -1142,11 +1142,11 @@ int ScalarArray<T>::productQ(char side, char trans, ScalarArray<T>* c) const {
