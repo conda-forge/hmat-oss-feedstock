@@ -12,5 +12,5 @@ if errorlevel 1 exit 1
 cmake --build . --target install --parallel %CPU_COUNT%
 if errorlevel 1 exit 1
 
-ctest --output-on-failure -j%CPU_COUNT% -E hodlrvsllt
+ctest --output-on-failure -j%CPU_COUNT%
 if errorlevel 1 exit 1
