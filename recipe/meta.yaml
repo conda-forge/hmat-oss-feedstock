@@ -1,4 +1,4 @@
-{% set version = "1.10.0" %}
+{% set version = "1.11.1" %}
 
 package:
   name: hmat-oss
@@ -7,7 +7,7 @@ package:
 source:
   fn: hmat-oss-{{ version }}.tar.gz
   url: https://github.com/jeromerobert/hmat-oss/archive/{{ version }}.tar.gz
-  sha256: 357969e54d4d213cbab9c0eb4ca944a160d519b0790c8300431b4acc151387e5
+  sha256: 01c5946f063178cf05a9cac4906eb06ba3b784a0f03a68e8ef757ec368dc077a
 
 build:
   number: 0
